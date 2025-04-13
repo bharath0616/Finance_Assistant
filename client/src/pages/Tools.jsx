@@ -110,6 +110,20 @@ export default function Tools() {
             </div>
         </Link>
         </div>
+<div className='w-1/2 p-4' data-aos="fade-down-left">
+        <Link to='/stockanalyzer' className='flex bg-[#010D50] p-6 no-underline 
+        rounded-3xl justify-center gap-4'>
+            <div>
+            <img src={sip} className='rounded-lg'/>
+            </div>
+            <div className='flex flex-col justify-center '>
+              <h className='text-white font-heading font-semibold text-sm'>Predictor</h>
+              <p className='text-white font-heading font-light text-sm '>
+              Simply enter the name of an Indian stock market company, and our tool will fetch the latest data to analyze the stock's performance. Based on real-time market trends, you'll receive a clear recommendation to Buy, Hold, or Sell the stock. Make informed investment decisions with ease.
+              </p>
+            </div>
+        </Link>
+        </div>
         </div>
 </div>
       </div>

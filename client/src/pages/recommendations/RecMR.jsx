@@ -1,4 +1,4 @@
-  import React, { useEffect, useState } from 'react'
+/*   import React, { useEffect, useState } from 'react'
   import motilal from './../../assets/mr/motilal.jpg'
   import bajaj from './../../assets/mr/bajaj.jpg'
   import jindal from './../../assets/mr/jindal.jpg'
@@ -35,13 +35,19 @@
           cmp:'₹ 283',
           cagr: '76.03%',
         },
-    };  
-    export default function RecMR() {
-      return (
-          <StockRecommendation
-              title="RECOMMENDED PICKS"
-              description="Here are our recommendations for the Medium risk level investment selected. Browse through the options and find associated details below."
-              stocksData={stocksData}
-          />
-      );
-  }
+    };   */
+    import React from 'react';
+    import StockRecommendation from '../../components/recommendations/stockRecommendation';
+    
+    const RecMR = () => {
+        return (
+            <StockRecommendation
+                title="Medium Confidence Sectors"
+                description="Sectors with moderate probability."
+                indices={[2, 3]}
+            />
+        );
+    };
+    
+    export default RecMR;
+    

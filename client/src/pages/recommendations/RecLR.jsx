@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+/* import React, { useEffect, useState } from 'react'
 import tcs from './../../assets/lr/tcs.jpg'
 import hdfcbank from './../../assets/lr/hdfc.jpg'
 import hul from './../../assets/lr/hul.jpg'
@@ -45,4 +45,19 @@ const stocksData = {
             stocksData={stocksData}
         />
     );
-}
+} */
+    import React from 'react';
+    import StockRecommendation from '../../components/recommendations/stockRecommendation';
+    
+    const RecLR = () => {
+        return (
+            <StockRecommendation
+                title="Low Confidence Sectors"
+                description="Sectors with the least probability."
+                indices={[4, 5]}
+            />
+        );
+    };
+    
+    export default RecLR;
+    

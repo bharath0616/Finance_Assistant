@@ -33,6 +33,7 @@ import SalaryCalculator from './pages/SalaryCalculator.jsx';
 import ChatbotWidget from './components/widgets/chatbotWidget.jsx';
 import EmiCalculator from './pages/EmiCalculator.jsx';
 import StockAnalyzer from './pages/StockAnalyzer.jsx';
+import Predictor from './pages/Predictor.jsx';
 
 
   export default function App() {
@@ -65,6 +66,7 @@ import StockAnalyzer from './pages/StockAnalyzer.jsx';
         <Route path='/siplow' element={<SipLow />} />
         <Route path='/sipmedium' element={<SipMedium />} />
         <Route path='/stockanalyzer' element={<StockAnalyzer />} />
+        <Route path='/predictor' element={<Predictor />} />
         <Route path='/siphigh' element={<SipHigh />} />
         <Route path='/taxlow' element={<TaxLow />} />
         <Route path='/taxmedium' element={<TaxMedium />} />

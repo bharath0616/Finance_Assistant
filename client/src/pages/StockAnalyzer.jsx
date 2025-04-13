@@ -4,169 +4,180 @@ import 'aos/dist/aos.css';
 import AOS from 'aos';
 
 export default function StockAnalyzer() {
-    const [stockData, setStockData] = useState([]);
+    const [tableData, setTableData] = useState([]);
+    const [csvFile, setCsvFile] = useState(null);
+    const [recommendation, setRecommendation] = useState("");
     const [loading, setLoading] = useState(false);
-    const [recommendations, setRecommendations] = useState("");
-
-    React.useEffect(() => {
-        AOS.init({ duration: 1000 });
-    }, []);
-
+  
     const fetchStockName = async (ticker) => {
-        const apiKey = 'CFJB4H2411V19VKU';
-        const url = `https://www.alphavantage.co/query?function=SYMBOL_SEARCH&keywords=${ticker}&apikey=${apiKey}`;
-        try {
-            const response = await fetch(url);
-            const data = await response.json();
-            return data.bestMatches?.[0]?.["2. name"] || "Not Found";
-        } catch (error) {
-            console.error("Error fetching stock data:", error);
-            return "Error";
-        }
-    };
-
-    const fetchStockNews = async (ticker) => {
-        const apiKey = 'CFJB4H2411V19VKU';
-        const url = `https://www.alphavantage.co/query?function=NEWS_SENTIMENT&tickers=${ticker}&apikey=${apiKey}`;
-        try {
-            const response = await fetch(url);
-            const data = await response.json();
-            return data.feed?.slice(0, 5).map(news => news.title).join(" | ") || "No recent news";
-        } catch (error) {
-            console.error("Error fetching stock news:", error);
-            return "Error";
-        }
-    };
-
-    const fetchFinancialRatios = async (ticker) => {
-        const apiKey = 'CFJB4H2411V19VKU';
-        const url = `https://www.alphavantage.co/query?function=OVERVIEW&symbol=${ticker}&apikey=${apiKey}`;
-        try {
-            const response = await fetch(url);
-            const data = await response.json();
-            return {
-                peRatio: data["PERatio"] || "N/A",
-                marketCap: data["MarketCapitalization"] || "N/A",
-                eps: data["EPS"] || "N/A",
-                dividendYield: data["DividendYield"] || "N/A",
-                priceToBook: data["PriceToBookRatio"] || "N/A"
-            };
-        } catch (error) {
-            console.error("Error fetching financial ratios:", error);
-            return { peRatio: "Error", marketCap: "Error", eps: "Error", dividendYield: "Error", priceToBook: "Error" };
-        }
-    };
-
-    const handleFile = async (event) => {
-        const file = event.target.files[0];
-        if (!file) return;
-
-        const reader = new FileReader();
-        reader.onload = async function (e) {
-            const tickers = e.target.result.split("\n").map(row => row.trim()).filter(row => row);
-            setLoading(true);
-            const results = [];
-
-            for (const ticker of tickers) {
-                const stockName = await fetchStockName(ticker);
-                const financialRatios = await fetchFinancialRatios(ticker);
-                const stockNews = await fetchStockNews(ticker);
-
-                results.push({ ticker, stockName, ...financialRatios, stockNews });
-            }
-
-            setStockData(results);
-            setLoading(false);
-        };
-        reader.readAsText(file);
-    };
-
-    const sendFile = async () => {
-        setLoading(true);
-        let csvContent = "Ticker,Stock Name,PE Ratio,Market Cap,EPS,Dividend Yield,Price to Book Ratio,Recent News Titles\n";
-        stockData.forEach(stock => {
-            csvContent += `${stock.ticker},${stock.stockName},${stock.peRatio},${stock.marketCap},${stock.eps},${stock.dividendYield},${stock.priceToBook},${stock.stockNews}\n`;
-        });
-
-        const apiKey = 'AIzaSyAKuIP0uXS5CDb9Fd7n2mSr_yYCgUdkCmc';
-        const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`;
-        const response = await fetch(endpoint, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                contents: [{ role: "user", parts: [{ text: `Analyze the following stock data and provide individual investment recommendations. Provide in such a way that you give a commentary whether to buy, hold or sell:\n\n${csvContent}` }] }]
-            }),
-        });
-
-        setLoading(false);
+      const apiKey = import.meta.env.ALPHAVINTAGE_API_KEY;
+      const url = `https://www.alphavantage.co/query?function=SYMBOL_SEARCH&keywords=${ticker}&apikey=${apiKey}`;
+      try {
+        const response = await fetch(url);
         const data = await response.json();
-        if (data?.candidates) {
-            setRecommendations(data.candidates[0].content.parts[0].text);
-        } else {
-            alert("Failed to get AI recommendations.");
-        }
+        return data.bestMatches && data.bestMatches.length > 0 ? data.bestMatches[0]["2. name"] : "Not Found";
+      } catch {
+        return "Error";
+      }
     };
-
+  
+    const fetchFinancialRatios = async (ticker) => {
+      const apiKey = import.meta.env.ALPHAVINTAGE_API_KEY;
+      const url = `https://www.alphavantage.co/query?function=OVERVIEW&symbol=${ticker}&apikey=${apiKey}`;
+      try {
+        const response = await fetch(url);
+        const data = await response.json();
+        if (data.Note) {
+          return { peRatio: "N/A", marketCap: "N/A", eps: "N/A", dividendYield: "N/A", priceToBook: "N/A" };
+        }
+        return {
+          peRatio: data["PERatio"] || "N/A",
+          marketCap: data["MarketCapitalization"] || "N/A",
+          eps: data["EPS"] || "N/A",
+          dividendYield: data["DividendYield"] || "N/A",
+          priceToBook: data["PriceToBookRatio"] || "N/A"
+        };
+      } catch {
+        return { peRatio: "Error", marketCap: "Error", eps: "Error", dividendYield: "Error", priceToBook: "Error" };
+      }
+    };
+  
+    const fetchStockNews = async (ticker) => {
+      const apiKey = import.meta.env.ALPHAVINTAGE_API_KEY;
+      const url = `https://www.alphavantage.co/query?function=NEWS_SENTIMENT&tickers=${ticker}&apikey=${apiKey}`;
+      try {
+        const response = await fetch(url);
+        const data = await response.json();
+        if (data.feed && data.feed.length > 0) {
+          return data.feed.slice(0, 3).map(news => news.title).join(" | ");
+        }
+        return "No recent news";
+      } catch {
+        return "Error";
+      }
+    };
+  
+    const handleCSVUpload = async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+  
+      const reader = new FileReader();
+      reader.onload = async (event) => {
+        const tickers = event.target.result.split("\n").map(row => row.trim()).filter(row => row);
+        const results = [];
+  
+        for (const ticker of tickers) {
+          const name = await fetchStockName(ticker);
+          const ratios = await fetchFinancialRatios(ticker);
+          const news = await fetchStockNews(ticker);
+  
+          results.push({
+            ticker,
+            name,
+            ...ratios,
+            news
+          });
+        }
+  
+        setTableData(results);
+      };
+  
+      reader.readAsText(file);
+    };
+  
+    const sendCSVToGemini = async () => {
+      const csvContent = [
+        "Ticker,Stock Name,PE Ratio,Market Cap,EPS,Dividend Yield,Price to Book Ratio,Recent News Titles",
+        ...tableData.map(item => [
+          item.ticker,
+          item.name,
+          item.peRatio,
+          item.marketCap,
+          item.eps,
+          item.dividendYield,
+          item.priceToBook,
+          item.news
+        ].join(","))
+      ].join("\n");
+  
+      const apiKey =import.meta.env.GEMINI_API_KEY ;
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`;
+  
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{
+            role: "user",
+            parts: [{ text: `Analyze the following stock data and provide individual investment recommendations:\n\n${csvContent}` }]
+          }]
+        })
+      });
+  
+      const data = await response.json();
+      if (data?.candidates?.[0]?.content?.parts?.[0]?.text) {
+        const output = data.candidates[0].content.parts[0].text;
+        window.location.href = `recommendation.html?text=${encodeURIComponent(output)}`;
+      } else {
+        alert("Failed to get AI recommendations.");
+      }
+    };
+  
     return (
-        <div className="max-w-6xl mx-auto px-6 py-12" data-aos="fade-down">
-            <h1 className="text-white font-bold text-4xl text-center mb-8">
+      <div className="max-w-5xl mx-auto p-6 text-white">
+        <h1 className="text-white font-bold text-4xl text-center mb-8">
                 📈 Stock Analyzer
             </h1>
             <p className="text-white text-md text-center mb-6">
                 Upload a CSV file containing stock tickers to get analysis.
             </p>
-            <div className="flex justify-center mb-6">
-                <input type="file" accept=".csv" onChange={handleFile} className="p-2 bg-gray-800 text-white rounded cursor-pointer" />
-            </div>
-
-            {loading && <div className="text-center text-white">🔄 Loading...</div>}
-
-            {stockData.length > 0 && (
-                <div data-aos="fade-up" className="overflow-x-auto">
-                    <table className="w-full text-white border border-gray-600">
-                        <thead>
-                            <tr className="bg-gray-900 border-b">
-                                <th className="p-3">Ticker</th>
-                                <th className="p-3">Stock Name</th>
-                                <th className="p-3">P/E Ratio</th>
-                                <th className="p-3">Market Cap</th>
-                                <th className="p-3">EPS</th>
-                                <th className="p-3">Dividend Yield</th>
-                                <th className="p-3">Price to Book</th>
-                                <th className="p-3">Recent News</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {stockData.map((stock, index) => (
-                                <tr key={index} className="border-b">
-                                    <td className="p-3">{stock.ticker}</td>
-                                    <td className="p-3">{stock.stockName}</td>
-                                    <td className="p-3">{stock.peRatio}</td>
-                                    <td className="p-3">{stock.marketCap}</td>
-                                    <td className="p-3">{stock.eps}</td>
-                                    <td className="p-3">{stock.dividendYield}</td>
-                                    <td className="p-3">{stock.priceToBook}</td>
-                                    <td className="p-3">{stock.stockNews}</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            )}
-
-            {stockData.length > 0 && (
-                <div className="text-center mt-6">
-                    <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-800" onClick={sendFile}>
-                        🤖 Get AI Recommendations
-                    </button>
-                </div>
-            )}
-            {loading && <div className="text-center text-white">🔄 Loading...</div>}
-            {recommendations && (
-                <div className="mt-6 p-4 bg-gray-800 rounded text-white">
-                    <ReactMarkdown>{recommendations}</ReactMarkdown>
-                </div>
-            )}
-        </div>
+  
+        <input
+          type="file"
+          accept=".csv"
+          onChange={handleCSVUpload}
+          className="mb-4 p-2 bg-gray-800 rounded border border-gray-600"
+        />
+  
+        {tableData.length > 0 && (
+          <>
+            <table className="w-full border-collapse mt-4 text-sm">
+              <thead className="bg-gray-700">
+                <tr>
+                  <th className="border px-2 py-1">Ticker</th>
+                  <th className="border px-2 py-1">Name</th>
+                  <th className="border px-2 py-1">PE Ratio</th>
+                  <th className="border px-2 py-1">Market Cap</th>
+                  <th className="border px-2 py-1">EPS</th>
+                  <th className="border px-2 py-1">Dividend Yield</th>
+                  <th className="border px-2 py-1">Price to Book</th>
+                  <th className="border px-2 py-1">Recent News</th>
+                </tr>
+              </thead>
+              <tbody>
+                {tableData.map((row, idx) => (
+                  <tr key={idx} className="bg-gray-800">
+                    <td className="border px-2 py-1">{row.ticker}</td>
+                    <td className="border px-2 py-1">{row.name}</td>
+                    <td className="border px-2 py-1">{row.peRatio}</td>
+                    <td className="border px-2 py-1">{row.marketCap}</td>
+                    <td className="border px-2 py-1">{row.eps}</td>
+                    <td className="border px-2 py-1">{row.dividendYield}</td>
+                    <td className="border px-2 py-1">{row.priceToBook}</td>
+                    <td className="border px-2 py-1">{row.news}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+  
+            <button
+              onClick={sendCSVToGemini}
+              className="mt-6 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded"
+            >
+              Get AI Recommendation
+            </button>
+          </>
+        )}
+      </div>
     );
-}
+  }

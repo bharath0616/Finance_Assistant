@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+/* import React, { useEffect, useState } from 'react';
 import 'aos/dist/aos.css';
-import AOS from 'aos';
-
+import AOS from 'aos'; */
+/* 
 const StockRecommendation = ({ title, description, stocksData }) => {
     useEffect(() => {
         AOS.init({ duration: 1000, offset: 100 });
@@ -64,6 +64,82 @@ const StockRecommendation = ({ title, description, stocksData }) => {
                     </div>
                 </div>
             )}
+
+            <div className='text-white font-heading font-extralight text-xs mt-20 flex justify-center'>
+                <i>All information provided is as-per financial industry experts. However, ensure to read all scheme related information carefully and conclusively.</i>
+            </div>
+        </div>
+    );
+};
+
+export default StockRecommendation; */
+import React, { useEffect, useState } from 'react';
+import 'aos/dist/aos.css';
+import AOS from 'aos';
+
+const StockRecommendation = ({ title, description, indices }) => {
+    const [apiData, setApiData] = useState([]);
+    const [selectedStock, setSelectedStock] = useState(null);
+
+    useEffect(() => {
+        AOS.init({ duration: 1000, offset: 100 });
+
+        const fetchData = async () => {
+            try {
+                const res = await fetch("https://sector-analysis-hqaucfc9b2b3gves.eastus-01.azurewebsites.net/recommend-sectors");
+                const data = await res.json();
+                setApiData(data);
+            } catch (err) {
+                console.error("API Fetch error:", err);
+            }
+        };
+
+        fetchData();
+    }, []);
+
+    const filteredData = apiData.filter((_, index) => indices.includes(index));
+
+    const handleStockSelection = (stock) => {
+        setSelectedStock(stock);
+    };
+
+    return (
+        <div className='flex flex-col justify-center items-stretch'>
+            <div className='flex flex-col justify-center items-center mt-20' data-aos='fade-right'>
+                <h1 className='text-white font-heading text-4xl font-bold'>RECOMMENDED PICKS</h1>
+                <p className='text-white font-heading text-sm font-extralight text-center'>
+                    {description}
+                </p>
+            </div>
+
+            <div className='flex justify-around gap-8 ml-24 mr-24 mt-20'>
+                <div className='bg-[#010D50] p-10 rounded-xl' style={{ flexBasis: '30%' }} data-aos='fade-left'>
+                    <div className='flex'>
+                        <div className='text-white font-heading py-1 px-3 mt-4 rounded-full bg-[#0328EE] text-xs uppercase font-light'>
+                            <p>Top Sectors</p>
+                        </div>
+                    </div>
+                    <div className='flex flex-col gap-4 mt-6'>
+                        {filteredData.map((stock, idx) => (
+                            <div key={idx} onClick={() => handleStockSelection(stock)} className='cursor-pointer'>
+                                <h2 className={`text-lg lg:xl font-heading ${selectedStock === stock ? 'text-white' : 'text-[#7B7676]'}`}>
+                                    {stock.sector}
+                                </h2>
+                                <hr className="bg-white mb-2" />
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                <div className='rounded-lg overflow-hidden' style={{ flexGrow: 1, flexBasis: '100%', maxWidth: '100%' }}>
+                    {selectedStock && (
+                        <div className='text-white text-xl p-6'>
+                            <p>Sector: {selectedStock.sector}</p>
+                            <p>Probability: {selectedStock.probability}%</p>
+                        </div>
+                    )}
+                </div>
+            </div>
 
             <div className='text-white font-heading font-extralight text-xs mt-20 flex justify-center'>
                 <i>All information provided is as-per financial industry experts. However, ensure to read all scheme related information carefully and conclusively.</i>
