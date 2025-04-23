@@ -39,7 +39,7 @@ export default function Predictor() {
     { symbol: 'NVDA', name: 'NVIDIA Corp. (Stock)' },
   ];
 
-  const DayOptions = [7, 15, 30, 60, 90];
+  const DayOptions = [7, 15, 30];
 
   const fetchPrediction = async () => {
     setLoading(true);
